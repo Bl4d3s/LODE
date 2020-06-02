@@ -35,11 +35,9 @@
 
 	<xsl:param name="lang" select="'en'" as="xs:string" />
 	<xsl:param name="css-location" select="'./'" as="xs:string" />
-	<xsl:param name="source" as="xs:string" select="''" />
 	<xsl:param name="ontology-url" as="xs:string" select="''" />
 	<xsl:param name="lode-external-url" as="xs:string"
 		select="''" />
-	<xsl:param name="webvowl" as="xs:string" select="''" />
 
 	<xsl:variable name="def-lang" select="'en'" as="xs:string" />
 	<xsl:variable name="n" select="'\n|\r|\r\n'" />
@@ -206,21 +204,6 @@
 				<xsl:call-template name="get.reengineeredFrom" />
 				<xsl:call-template name="get.relatedCPs" />
 				<xsl:call-template name="get.scenarios" />
-				<dl>
-					<dt>
-						<xsl:value-of
-							select="f:getDescriptionLabel('visualisation')" />
-						:
-					</dt>
-					<dd>
-						<a href="{$source}?url={$ontology-url}">
-							<xsl:value-of
-								select="f:getDescriptionLabel('ontologysource')" />
-						</a>
-						-
-						<a href="{$webvowl}{$ontology-url}">WebVowl</a>
-					</dd>
-				</dl>
 				<xsl:apply-templates
 					select="dc:rights|dcterms:rights" />
 			</div>
