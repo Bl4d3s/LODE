@@ -115,6 +115,8 @@ public class LodeServlet extends HttpServlet {
 		response.setCharacterEncoding("UTF-8");
 		PrintWriter out = response.getWriter();
 
+		if (request.getParameter("csslocation") != null)
+			cssLocation = request.getParameter("csslocation");
 		SourceExtractor extractor = new SourceExtractor();
 		extractor.addMimeTypes(MimeType.mimeTypes);
 
