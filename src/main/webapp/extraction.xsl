@@ -710,7 +710,7 @@
 						select="$node/rdfs:label[f:isInLanguage(.)]" />
 			</xsl:when>
 			<xsl:otherwise>
-				<xsl:value-of select="substring-after($iri, concat('http://wissensgraph.informatik.fh-nuernberg.de', '#'))" />
+				<xsl:value-of select="substring-after($iri, concat($ontology-base-url, '#'))" />
 			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:function>
@@ -724,6 +724,23 @@
 		select="$iri" /> </xsl:when> <xsl:otherwise> <xsl:value-of select="concat($prefix,':',substring-after($iri, 
 		$prefixes-uris[index-of($prefixes-uris,$prefix)[1] + 1]))" /> </xsl:otherwise> 
 		</xsl:choose> </xsl:otherwise> </xsl:choose> </xsl:function> -->
+	<xsl:function name="f:getLabelWithPrefix" as="xs:string">
+		<xsl:param name="iri" as="xs:string" />
+
+		<xsl:variable name="label" select="f:getLabel($iri)"/>
+		<xsl:variable name="prefix" select="f:getPrefixFromIRI($iri)" as="xs:string*" />
+		<xsl:choose>
+			<xsl:when test="empty($prefix)">
+				<xsl:value-of select="$label" />
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:value-of
+						select="concat($prefix, ':', $label)" />
+			</xsl:otherwise>
+		</xsl:choose>
+
+	</xsl:function>
+
 	<xsl:function name="f:getLabel" as="xs:string">
 		<xsl:param name="iri" as="xs:string" />
 
@@ -744,7 +761,7 @@
 							</xsl:when>
 							<xsl:otherwise>
 								<xsl:value-of
-									select="concat($prefix,':',substring-after($iri, $prefixes-uris[index-of($prefixes-uris,$prefix)[1] + 1]))" />
+									select="substring-after($iri, $prefixes-uris[index-of($prefixes-uris,$prefix)[1] + 1])" />
 							</xsl:otherwise>
 						</xsl:choose>
 			</xsl:otherwise>
@@ -1884,7 +1901,7 @@
 			</xsl:when>
 			<xsl:otherwise>
 				<h3>
-					<xsl:value-of select="f:getLabel(@*:about|@*:ID)" />
+					<xsl:value-of select="f:getLabelWithPrefix(@*:about|@*:ID)" />
 					<xsl:call-template
 						name="get.entity.type.descriptor">
 						<xsl:with-param name="iri" select="@*:about|@*:ID"
