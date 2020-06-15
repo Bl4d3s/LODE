@@ -36,6 +36,7 @@
 	<xsl:param name="lang" select="'en'" as="xs:string" />
 	<xsl:param name="css-location" select="'./'" as="xs:string" />
 	<xsl:param name="ontology-url" as="xs:string" select="''" />
+	<xsl:param name="ontology-base-url" as="xs:string" select="replace($ontology-url, '(.*)/(.*)', '$1')" />
 	<xsl:param name="lode-external-url" as="xs:string"
 		select="''" />
 
@@ -149,9 +150,7 @@
 			jQuery(".markdown").each(function(el){
 			jQuery(this).after(marked(jQuery(this).text())).remove()});
 			var list =
-			$('a[name="
-			<xsl:value-of select="$ontology-url" />
-			"]');
+			$('a[name="<xsl:value-of select="$ontology-url" />"]');
 			if (list.size() != 0) {
 			var element = list.first();
 			$.scrollTo(element);
@@ -520,7 +519,7 @@
 		match="element()|text()[normalize-space() = '']" />
 
 	<xsl:template match="owl:Class">
-		<div id="{generate-id()}" class="entity">
+		<div id="{f:getLabel(@*:about|@*:ID)}" class="entity">
 			<xsl:call-template name="get.entity.name">
 				<xsl:with-param name="toc" select="'classes'"
 					tunnel="yes" as="xs:string" />
@@ -537,7 +536,7 @@
 	</xsl:template>
 
 	<xsl:template match="owl:NamedIndividual">
-		<div id="{generate-id()}" class="entity">
+		<div id="{f:getLabel(@*:about|@*:ID)}" class="entity">
 			<xsl:call-template name="get.entity.name">
 				<xsl:with-param name="toc"
 					select="'namedindividuals'" tunnel="yes" as="xs:string" />
@@ -556,7 +555,7 @@
 
 	<xsl:template
 		match="owl:ObjectProperty | owl:DatatypeProperty | owl:AnnotationProperty">
-		<div id="{generate-id()}" class="entity">
+		<div id="{f:getLabel(@*:about|@*:ID)}" class="entity">
 			<xsl:call-template name="get.entity.name">
 				<xsl:with-param name="toc"
 					select="if (self::owl:ObjectProperty) then 'objectproperties' else if (self::owl:AnnotationProperty) then 'annotationproperties' else 'dataproperties'"
@@ -620,7 +619,7 @@
 
 	<xsl:template match="element()" mode="toc">
 		<li>
-			<a href="#{generate-id()}" title="{@*:about|@*:ID}">
+			<a href="#{f:getLabel(@*:about|@*:ID)}" title="{@*:about|@*:ID}">
 				<xsl:choose>
 					<xsl:when test="exists(rdfs:label)">
 						<xsl:value-of select="rdfs:label[f:isInLanguage(.)]" />
@@ -679,7 +678,7 @@
 			tunnel="yes" />
 
 		<xsl:variable name="anchor"
-			select="f:findEntityId(.,$type)" as="xs:string" />
+			select="f:getAnchor(.)" as="xs:string" />
 		<xsl:variable name="label" select="f:getLabel(.)"
 			as="xs:string" />
 		<xsl:choose>
@@ -699,39 +698,50 @@
 		</xsl:call-template>
 	</xsl:template>
 
-	<xsl:function name="f:findEntityId" as="xs:string">
+	<xsl:function name="f:getAnchor" as="xs:string">
 		<xsl:param name="iri" as="xs:string" />
-		<xsl:param name="type" as="xs:string" />
 
-		<xsl:variable name="el"
-			select="$root//rdf:RDF/element()[(@*:about = $iri or @*:ID = $iri) and exists(element())]"
-			as="element()*" />
+		<xsl:variable name="node"
+					  select="$root//rdf:RDF/element()[(@*:about = $iri or @*:ID = $iri) and exists(rdfs:label)][1]"
+					  as="element()*" />
 		<xsl:choose>
-			<xsl:when test="exists($el)">
-				<xsl:choose>
-					<xsl:when test="$type = 'class'">
-						<xsl:value-of
-							select="generate-id($el[local-name() = 'Class'][1])" />
-					</xsl:when>
-					<xsl:when test="$type = 'property'">
-						<xsl:value-of
-							select="generate-id($el[local-name() = 'ObjectProperty' or local-name() = 'DatatypeProperty'][1])" />
-					</xsl:when>
-					<xsl:when test="$type = 'annotation'">
-						<xsl:value-of
-							select="generate-id($el[local-name() = 'AnnotationProperty'][1])" />
-					</xsl:when>
-					<xsl:when test="$type = 'individual'">
-						<xsl:value-of
-							select="generate-id($el[local-name() = 'NamedIndividual'][1])" />
-					</xsl:when>
-					<xsl:otherwise>
-						<xsl:value-of select="generate-id($el[1])" />
-					</xsl:otherwise>
-				</xsl:choose>
+			<xsl:when test="exists($node/rdfs:label)">
+				<xsl:value-of
+						select="$node/rdfs:label[f:isInLanguage(.)]" />
 			</xsl:when>
 			<xsl:otherwise>
-				<xsl:value-of select="''" />
+				<xsl:variable name="localName" as="xs:string?">
+					<xsl:variable name="current-index"
+								  select="if (contains($iri,'#'))
+                                    then f:string-first-index-of($iri,'#')
+                                    else f:string-last-index-of(replace($iri,'://','---'),'/')"
+								  as="xs:integer?" />
+					<xsl:if
+							test="exists($current-index) and string-length($iri) != $current-index">
+						<xsl:sequence
+								select="substring($iri,$current-index + 1)" />
+					</xsl:if>
+				</xsl:variable>
+
+				<xsl:choose>
+					<xsl:when test="string-length($localName) = 0">
+						<xsl:variable name="prefix"
+									  select="f:getPrefixFromIRI($iri)" as="xs:string*" />
+						<xsl:choose>
+							<xsl:when test="empty($prefix)">
+								<xsl:value-of select="$iri" />
+							</xsl:when>
+							<xsl:otherwise>
+								<xsl:value-of
+										select="concat($prefix,':',substring-after($iri, $prefixes-uris[index-of($prefixes-uris,$prefix)[1] + 1]))" />
+							</xsl:otherwise>
+						</xsl:choose>
+					</xsl:when>
+					<xsl:otherwise>
+						<xsl:value-of
+								select="substring-after($iri, concat($ontology-base-url, '#'))" />
+					</xsl:otherwise>
+				</xsl:choose>
 			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:function>
@@ -785,12 +795,8 @@
 						</xsl:choose>
 					</xsl:when>
 					<xsl:otherwise>
-						<xsl:variable name="camelCase"
-							select="replace($localName,'([A-Z])',' $1')" />
-						<xsl:variable name="underscoreOrDash"
-							select="replace($camelCase,'(_|-)',' ')" />
 						<xsl:value-of
-							select="normalize-space(lower-case($underscoreOrDash))" />
+							select="$localName" />
 					</xsl:otherwise>
 				</xsl:choose>
 			</xsl:otherwise>
@@ -849,7 +855,7 @@
 
 	<xsl:template
 		match="/rdf:RDF/rdf:Description[exists(rdf:type[@*:resource = 'http://www.w3.org/2002/07/owl#AllDisjointClasses'])]">
-		<div id="{generate-id()}" class="entity">
+		<div id="{f:getLabel(@*:about|@*:ID)}" class="entity">
 			<h3>
 				<xsl:value-of
 					select="f:getDescriptionLabel('disjointclasses')" />
@@ -873,7 +879,7 @@
 
 	<xsl:template
 		match="/rdf:RDF/owl:Restriction[exists(rdfs:subClassOf)]">
-		<div id="{generate-id()}" class="entity">
+		<div id="{f:getLabel(@*:about|@*:ID)}" class="entity">
 			<h3>
 				<xsl:value-of
 					select="f:getDescriptionLabel('subclassdefinition')" />
@@ -899,7 +905,7 @@
 
 	<xsl:template
 		match="/rdf:RDF/owl:Restriction[exists(owl:equivalentClass)]">
-		<div id="{generate-id()}" class="entity">
+		<div id="{f:getLabel(@*:about|@*:ID)}" class="entity">
 			<h3>
 				<xsl:value-of
 					select="f:getDescriptionLabel('equivalentdefinition')" />
@@ -933,7 +939,7 @@
 
 	<xsl:template
 		match="/rdf:RDF/owl:Class[empty(@*:about | @*:ID) and exists(rdfs:subClassOf)]">
-		<div id="{generate-id()}" class="entity">
+		<div id="{f:getLabel(@*:about|@*:ID)}" class="entity">
 			<h3>
 				<xsl:value-of
 					select="f:getDescriptionLabel('subclassdefinition')" />
@@ -960,7 +966,7 @@
 
 	<xsl:template
 		match="/rdf:RDF/owl:Class[empty(@*:about | @*:ID) and exists(owl:equivalentClass)]">
-		<div id="{generate-id()}" class="entity">
+		<div id="{f:getLabel(@*:about|@*:ID)}" class="entity">
 			<h3>
 				<xsl:value-of
 					select="f:getDescriptionLabel('equivalentdefinition')" />
@@ -1295,7 +1301,7 @@
 				<xsl:for-each select="$punningsequence">
 					<xsl:choose>
 						<xsl:when test="element()">
-							<a href="#{generate-id(.)}">
+							<a href="#{f:getLabel(@*:about|@*:ID)}">
 								<xsl:value-of select="f:getType(.)" />
 							</a>
 						</xsl:when>
