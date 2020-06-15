@@ -67,6 +67,8 @@ h2 {
 }
 
 .dotted {
+    text-decoration: none;
+    color: #008;
     border-bottom: 1px dotted gray;
 }
 

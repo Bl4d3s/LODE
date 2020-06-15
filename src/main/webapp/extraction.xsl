@@ -683,12 +683,12 @@
 			as="xs:string" />
 		<xsl:choose>
 			<xsl:when test="$anchor = ''">
-				<span class="dotted" title="{.}">
+				<a href="#{$label}" class="dotted" title="{.}">
 					<xsl:value-of select="$label" />
-				</span>
+				</a>
 			</xsl:when>
 			<xsl:otherwise>
-				<a href="#{$anchor}" title="{.}">
+				<a href="#{$label}" title="{.}">
 					<xsl:value-of select="$label" />
 				</a>
 			</xsl:otherwise>
@@ -710,38 +710,7 @@
 						select="$node/rdfs:label[f:isInLanguage(.)]" />
 			</xsl:when>
 			<xsl:otherwise>
-				<xsl:variable name="localName" as="xs:string?">
-					<xsl:variable name="current-index"
-								  select="if (contains($iri,'#'))
-                                    then f:string-first-index-of($iri,'#')
-                                    else f:string-last-index-of(replace($iri,'://','---'),'/')"
-								  as="xs:integer?" />
-					<xsl:if
-							test="exists($current-index) and string-length($iri) != $current-index">
-						<xsl:sequence
-								select="substring($iri,$current-index + 1)" />
-					</xsl:if>
-				</xsl:variable>
-
-				<xsl:choose>
-					<xsl:when test="string-length($localName) = 0">
-						<xsl:variable name="prefix"
-									  select="f:getPrefixFromIRI($iri)" as="xs:string*" />
-						<xsl:choose>
-							<xsl:when test="empty($prefix)">
-								<xsl:value-of select="$iri" />
-							</xsl:when>
-							<xsl:otherwise>
-								<xsl:value-of
-										select="concat($prefix,':',substring-after($iri, $prefixes-uris[index-of($prefixes-uris,$prefix)[1] + 1]))" />
-							</xsl:otherwise>
-						</xsl:choose>
-					</xsl:when>
-					<xsl:otherwise>
-						<xsl:value-of
-								select="substring-after($iri, concat($ontology-base-url, '#'))" />
-					</xsl:otherwise>
-				</xsl:choose>
+				<xsl:value-of select="substring-after($iri, concat('http://wissensgraph.informatik.fh-nuernberg.de', '#'))" />
 			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:function>
@@ -767,21 +736,6 @@
 					select="$node/rdfs:label[f:isInLanguage(.)]" />
 			</xsl:when>
 			<xsl:otherwise>
-				<xsl:variable name="localName" as="xs:string?">
-					<xsl:variable name="current-index"
-						select="if (contains($iri,'#')) 
-                                    then f:string-first-index-of($iri,'#') 
-                                    else f:string-last-index-of(replace($iri,'://','---'),'/')"
-						as="xs:integer?" />
-					<xsl:if
-						test="exists($current-index) and string-length($iri) != $current-index">
-						<xsl:sequence
-							select="substring($iri,$current-index + 1)" />
-					</xsl:if>
-				</xsl:variable>
-
-				<xsl:choose>
-					<xsl:when test="string-length($localName) = 0">
 						<xsl:variable name="prefix"
 							select="f:getPrefixFromIRI($iri)" as="xs:string*" />
 						<xsl:choose>
@@ -793,12 +747,6 @@
 									select="concat($prefix,':',substring-after($iri, $prefixes-uris[index-of($prefixes-uris,$prefix)[1] + 1]))" />
 							</xsl:otherwise>
 						</xsl:choose>
-					</xsl:when>
-					<xsl:otherwise>
-						<xsl:value-of
-							select="$localName" />
-					</xsl:otherwise>
-				</xsl:choose>
 			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:function>
