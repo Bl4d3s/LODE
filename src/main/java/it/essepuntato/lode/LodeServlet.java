@@ -92,7 +92,7 @@ import com.clarkparsia.pellet.owlapiv3.PelletReasonerFactory;
 public class LodeServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private String xsltURL = "http://lode.sourceforge.net/xslt";
-	private String cssLocation = "http://lode.sourceforge.net/css/";
+	private String resLocation = "http://lode.sourceforge.net/css/";
 	private int maxTentative = 3;
 	private LODEConfiguration conf;
 
@@ -115,8 +115,8 @@ public class LodeServlet extends HttpServlet {
 		response.setCharacterEncoding("UTF-8");
 		PrintWriter out = response.getWriter();
 
-		if (request.getParameter("csslocation") != null)
-			cssLocation = request.getParameter("csslocation");
+		if (request.getParameter("reslocation") != null)
+			resLocation = request.getParameter("reslocation");
 		SourceExtractor extractor = new SourceExtractor();
 		extractor.addMimeTypes(MimeType.mimeTypes);
 
@@ -175,7 +175,7 @@ public class LodeServlet extends HttpServlet {
 		int index = requestURL.lastIndexOf("/");
 		String protocol = request.getProtocol();
 		protocol = protocol.substring(0, protocol.indexOf("/")).toLowerCase();
-		cssLocation = "http" + requestURL.substring(start, index) + File.separator;
+		resLocation = "http" + requestURL.substring(start, index) + File.separator;
 		System.out.println("____#### " + request.getServerPort() + " : " + protocol);
 
 	}
@@ -338,7 +338,7 @@ public class LodeServlet extends HttpServlet {
 
 	private OWLOntology parseWithReasoner(OWLOntologyManager manager, OWLOntology ontology) {
 		try {
-			PelletOptions.load(new URL("http://" + cssLocation + "pellet.properties"));
+			PelletOptions.load(new URL("http://" + resLocation + "pellet.properties"));
 			PelletReasoner reasoner = PelletReasonerFactory.getInstance().createReasoner(ontology);
 			reasoner.getKB().prepare();
 			List<InferredAxiomGenerator<? extends OWLAxiom>> generators = new ArrayList<InferredAxiomGenerator<? extends OWLAxiom>>();
@@ -446,7 +446,7 @@ public class LodeServlet extends HttpServlet {
 
 		Transformer transformer = tfactory.newTransformer(new StreamSource(xsltURL));
 
-		transformer.setParameter("css-location", cssLocation);
+		transformer.setParameter("res-location", resLocation);
 		transformer.setParameter("lang", lang);
 		transformer.setParameter("ontology-url", ontologyUrl);
 		transformer.setParameter("lode-external-url", conf.getExternalURL());

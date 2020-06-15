@@ -34,7 +34,7 @@
 	<xsl:output encoding="UTF-8" indent="no" method="xhtml" />
 
 	<xsl:param name="lang" select="'en'" as="xs:string" />
-	<xsl:param name="css-location" select="'./'" as="xs:string" />
+	<xsl:param name="res-location" select="'./'" as="xs:string" />
 	<xsl:param name="ontology-url" as="xs:string" select="''" />
 	<xsl:param name="ontology-base-url" as="xs:string" select="replace($ontology-url, '(.*)/(.*)', '$1')" />
 	<xsl:param name="lode-external-url" as="xs:string"
@@ -129,20 +129,20 @@
 	<xsl:template name="htmlhead">
 		<meta content="text/html; charset=utf-8"
 			http-equiv="Content-Type" />
-		<link href="{$css-location}owl.css" rel="stylesheet"
+		<link href="{$res-location}owl.css" rel="stylesheet"
 			type="text/css" />
-		<link href="{$css-location}Primer.css" rel="stylesheet"
+		<link href="{$res-location}Primer.css" rel="stylesheet"
 			type="text/css" />
-		<link href="{$css-location}rec.css" rel="stylesheet"
+		<link href="{$res-location}rec.css" rel="stylesheet"
 			type="text/css" />
-		<link href="{$css-location}extra.css" rel="stylesheet"
+		<link href="{$res-location}extra.css" rel="stylesheet"
 			type="text/css" />
-		<link rel="shortcut icon" href="{$css-location}favicon.ico" />
-		<script src="{$css-location}jquery.js"><!-- Comment for compatibility -->
+		<link rel="shortcut icon" href="{$res-location}favicon.ico" />
+		<script src="{$res-location}jquery.js"><!-- Comment for compatibility -->
 		</script>
-		<script src="{$css-location}jquery.scrollTo.js"><!-- Comment for compatibility -->
+		<script src="{$res-location}jquery.scrollTo.js"><!-- Comment for compatibility -->
 		</script>
-		<script src="{$css-location}marked.min.js"><!-- Comment for compatibility -->
+		<script src="{$res-location}marked.min.js"><!-- Comment for compatibility -->
 		</script>
 		<script>
 			$(document).ready(
