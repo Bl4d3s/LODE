@@ -66,18 +66,7 @@ import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.search.EntitySearcher;
-import org.semanticweb.owlapi.util.InferredAxiomGenerator;
-import org.semanticweb.owlapi.util.InferredClassAssertionAxiomGenerator;
-import org.semanticweb.owlapi.util.InferredDisjointClassesAxiomGenerator;
-import org.semanticweb.owlapi.util.InferredEquivalentClassAxiomGenerator;
-import org.semanticweb.owlapi.util.InferredEquivalentDataPropertiesAxiomGenerator;
-import org.semanticweb.owlapi.util.InferredEquivalentObjectPropertyAxiomGenerator;
-import org.semanticweb.owlapi.util.InferredInverseObjectPropertiesAxiomGenerator;
-import org.semanticweb.owlapi.util.InferredOntologyGenerator;
-import org.semanticweb.owlapi.util.InferredPropertyAssertionGenerator;
-import org.semanticweb.owlapi.util.InferredSubClassAxiomGenerator;
-import org.semanticweb.owlapi.util.InferredSubDataPropertyAxiomGenerator;
-import org.semanticweb.owlapi.util.InferredSubObjectPropertyAxiomGenerator;
+import org.semanticweb.owlapi.util.*;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -143,9 +132,11 @@ public class LodeServlet extends HttpServlet {
 					lang = "en";
 				}
 
+				String customPrefix = request.getParameter("customPrefix");
+
 				if (useOWLAPI) {
 					content = parseWithOWLAPI(ontologyURL, useOWLAPI, considerImportedOntologies,
-							considerImportedClosure, useReasoner);
+							considerImportedClosure, useReasoner, customPrefix);
 				} else {
 					content = extractor.exec(ontologyURL);
 				}
@@ -222,7 +213,7 @@ public class LodeServlet extends HttpServlet {
 	 */
 
 	private String parseWithOWLAPI(URL ontologyURL, boolean useOWLAPI, boolean considerImportedOntologies,
-			boolean considerImportedClosure, boolean useReasoner)
+			boolean considerImportedClosure, boolean useReasoner, String customPrefix)
 			throws OWLOntologyCreationException, OWLOntologyStorageException, URISyntaxException {
 		String result = "";
 
@@ -252,8 +243,16 @@ public class LodeServlet extends HttpServlet {
 			}
 
 			StringDocumentTarget parsedOntology = new StringDocumentTarget();
-
-			manager.saveOntology(ontology, new RDFXMLDocumentFormat(), parsedOntology);
+			RDFXMLDocumentFormat newFormat = new RDFXMLDocumentFormat();
+			if (customPrefix != null) {
+				String[] prefixIRI = customPrefix.split(":", 2);
+				if (prefixIRI.length == 2) {
+					DefaultPrefixManager pm = new DefaultPrefixManager();
+					pm.setPrefix(prefixIRI[0] + ':', prefixIRI[1]);
+					newFormat.copyPrefixesFrom(pm);
+				}
+			}
+			manager.saveOntology(ontology, newFormat, parsedOntology);
 			result = parsedOntology.toString();
 		}
 
